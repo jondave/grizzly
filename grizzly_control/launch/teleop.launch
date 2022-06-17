@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="joy_dev" default="$(optenv GRIZZLY_JOY_DEVICE /dev/input/js0)" />
+  <arg name="joystick" default="true" />
+
+  <group ns="joy_teleop">
+
+    <group unless="$(optenv GRIZZLY_LOGITECH 0)" >
+      <rosparam command="load" file="$(find grizzly_control)/config/teleop_ps4.yaml" />
+    </group>
+
+    <group if="$(optenv GRIZZLY_LOGITECH 0)" >
+      <rosparam command="load" file="$(find grizzly_control)/config/teleop_logitech.yaml" />
+      <param name="joy_node/dev" value="$(arg joy_dev)" />
+    </group>
+
+    <group if="$(optenv GRIZZLY_8BITDO 0)" >
+      <rosparam command="load" file="$(find grizzly_control)/config/teleop_8bitdo.yaml" />
+      <param name="joy_node/dev" value="$(arg joy_dev)" />
+    </group>
+
+    <node pkg="joy" type="joy_node" name="joy_node" />
+
+    <node pkg="teleop_twist_joy" type="teleop_node" name="teleop_twist_joy">
+      <remap from="cmd_vel" to="/rc_teleop/cmd_vel" />
+    </node>
+  </group>
+
+  <node name="joy_remove_goal" pkg="grizzly_control" type="joy_remove_goal.py" output="screen"/> <!-- include this to cancel move base goals from controller by pressing B button -->
+
+</launch>
